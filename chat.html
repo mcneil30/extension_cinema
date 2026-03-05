@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escena Android</title>
+
+<style>
+body{
+  margin:0;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family: Arial, sans-serif;
+  overflow:hidden;
+}
+
+.phone{
+  width:min(90vw, 420px);
+  aspect-ratio:9/18;
+  background:#111;
+  border-radius:32px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 0 60px rgba(0,0,0,0.9);
+}
+
+/* ================= HOME ANDROID ================= */
+
+.home{
+  position:absolute;
+  inset:0;
+  background:url('./image/display01.jpg') center/cover;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition:transform .6s ease, opacity .6s ease;
+  z-index:1;
+}
+
+.app-icon{
+  width:70px;
+  height:70px;
+  border-radius:20px;
+  overflow:hidden;
+  transition:transform .15s ease;
+  cursor:pointer;
+  position:relative;
+  z-index:10;   /* 🔥 importante */
+
+}
+
+.app-icon img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;   /* 🔥 clave */
+}
+
+.app-icon:active{
+  transform:scale(0.85);
+}
+
+/* ================= CHAT ================= */
+
+.chat{
+  position:absolute;
+  inset:0;
+  background:#111;
+  display:flex;
+  flex-direction:column;
+  transform:scale(1.2);
+  opacity:0;
+  visibility:hidden;
+  transition:.6s cubic-bezier(.22,1,.36,1);
+  z-index:5;
+  pointer-events:none;
+}
+
+.chat.active{
+  transform:scale(1);
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  padding-bottom:315px; /* espacio teclado */
+}
+
+.chat.keyboard-open{
+  transform:translateY(-150px) scale(1);
+}
+
+.header{
+  background:#0b3d36;
+  padding:18px;
+  color:white;
+  font-weight:bold;
+}
+
+.messages{
+  flex:1;
+  background-image: url(./image/background_w.jpg);
+  background-size: cover;        /* 🔥 ajusta proporcionalmente */
+  background-position: center;   /* 🔥 centra la imagen */
+  background-repeat: no-repeat;  /* 🔥 evita repetición */
+}
+
+.input{
+  padding:14px;
+  background:#1f1f1f;
+  border-top:1px solid #333;
+  color:white;
+  font-size:16px;
+  margin-bottom:2px; /* 🔥 separación visual */
+}
+
+.cursor{
+  display:inline-block;
+  width:2px;
+  height:18px;
+  background:white;
+  animation:blink 1.2s infinite;
+}
+@keyframes blink{50%{opacity:0;}}
+
+/* ================= POPUP ================= */
+
+.system-popup{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  transition:opacity 2s ease;
+  z-index:20;
+  pointer-events:none;   /* 🔥 ESTA LÍNEA FALTABA */
+}
+
+.popup-card{
+  width:80%;
+  background:#f2f2f2;
+  border-radius:14px;
+  padding:30px 20px;
+  text-align:center;
+  transform:scale(0.85);
+  transition:transform 1.8s cubic-bezier(.19,1,.22,1);
+}
+
+.popup-text{
+  font-size:50px;
+  font-weight:800;
+  color:#222;
+  line-height:1.1;
+}
+
+.keyboard{
+  position:absolute;
+  bottom:-300px;
+  height:300px;
+  left:0;
+  width:100%;
+  background:#2a2a2a;
+  padding:8px;
+  transition:bottom .5s ease;
+}
+
+.row{
+  display:flex;
+  justify-content:center;
+  margin:4px 0;
+}
+
+.key{
+  display:inline-block;
+  width:32px;
+  height:40px;
+  margin:4px;
+  background:#eee;
+  text-align:center;
+  line-height:40px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.key.active{
+  background:#777;
+  transform:scale(1.1);
+}
+
+.space{min-width:120px}
+.delete{min-width:60px}
+
+.hide{
+  transform:translateY(100%);
+}
+
+.popup-divider{
+  height:1px;
+  background:#ddd;
+  margin:10px 0 15px;
+}
+.popup-icon{
+  width:60px;
+  margin-bottom:2px;
+  opacity:0;
+  transform:translateY(-10px);
+  transition:all .6s ease;
+}
+
+.system-popup.show .popup-icon{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.nav-bar{
+  position:absolute;
+  bottom:12px;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  height: 50px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:50;
+  transition:opacity .4s ease;
+  backdrop-filter:blur(8px);
+  background:rgba(0,0,0,0.25);
+  padding:8px 24px;
+  pointer-events:auto;
+}
+.nav-icon{
+  width:28px;
+  height:28px;
+  object-fit:contain;
+  opacity:.75;
+  margin: 0px 25px;
+}
+.nav-icon:active{
+  transform:scale(0.85);
+  opacity:1;
+  transition:.1s ease;
+}
+
+.home-btn{
+  width:34px; /* botón central un poco más grande */
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+
+  <!-- HOME -->
+  <div class="home" id="home">
+    <div class="app-icon" id="openApp">
+      <img src="./image/whats.png">
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat" id="chatApp">
+    <div class="header">Chat</div>
+    <div class="messages"></div>
+    <div class="input">
+  <span id="text"></span><span class="cursor"></span>
+</div>
+
+<div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <!-- POPUP -->
+  <div class="system-popup" id="popup">
+    <div class="popup-card">
+  <img src="./image/robot.png" class="popup-icon">
+  <div class="popup-divider"></div>
+  <div class="popup-text">¿Estás<br>seguro?</div>
+</div>
+  </div>
+
+  <div class="nav-bar">
+  <img src="./image/menu.png" class="nav-icon back">
+  <img src="./image/cuadro.png" class="nav-icon home-btn">
+  <img src="./image/triangulo.png" class="nav-icon recent">
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+  const home = document.getElementById("home");
+  const chat = document.getElementById("chatApp");
+  const popup = document.getElementById("popup");
+  const icon = document.getElementById("openApp");
+  const keyboard = document.getElementById("keyboard");
+  const text = document.getElementById("text");
+  const messages = document.querySelector(".messages");
+
+  let currentText = "";
+
+  /* =========================
+     GENERAR TECLADO
+  ========================== */
+  const keys = "QWERTYUIOPASDFGHJKLZXCVBNM ";
+  
+  keys.split("").forEach(letter=>{
+    const key = document.createElement("div");
+    key.className="key";
+    key.innerText = letter === " " ? "␣" : letter;
+    keyboard.appendChild(key);
+  });
+
+  const back = document.createElement("div");
+  back.className="key";
+  back.innerText="⌫";
+  keyboard.appendChild(back);
+
+  const enter = document.createElement("div");
+  enter.className="key";
+  enter.innerText="⏎";
+  keyboard.appendChild(enter);
+
+/* =========================
+     FUNCIÓN PARA ANIMAR TECLA
+  ========================== */
+  function pressKey(letter){
+
+    const normalized = letter
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    document.querySelectorAll(".key").forEach(key=>{
+
+      if(
+        key.innerText.toLowerCase() === normalized.toLowerCase() ||
+        (letter === " " && key.innerText === "␣")
+      ){
+        key.classList.add("active");
+
+        setTimeout(()=>{
+          key.classList.remove("active");
+        },120);
+      }
+
+    });
+  }
+
+  /* =========================
+     CLICK ICONO
+  ========================== */
+ icon.addEventListener("click", ()=>{
+
+  home.style.opacity = 0;
+  home.style.pointerEvents = "none";
+
+  setTimeout(()=>{
+    chat.classList.add("active");
+
+    setTimeout(()=>{
+      keyboard.style.bottom="0";
+
+      setTimeout(()=>{
+        autoDrama();  // 🔥 inicia la escena automática
+      },800);
+
+    },400);
+
+  },400);
+
+});
+
+
+  /* =========================
+     TECLADO FUNCIONAMIENTO
+  ========================== */
+  keyboard.addEventListener("click",(e)=>{
+
+    if(!e.target.classList.contains("key")) return;
+
+    const value = e.target.innerText;
+
+    if(value==="⌫"){
+      currentText = currentText.slice(0,-1);
+    }
+    else if(value==="⏎"){
+      sendMessage();
+      return;
+    }
+    else{
+      currentText += value;
+    }
+
+    text.innerText = currentText;
+  });
+
+
+  /* =========================
+     ENVIAR MENSAJE
+  ========================== */
+  function sendMessage(){
+
+    if(currentText.trim()==="") return;
+
+    const msg = document.createElement("div");
+    msg.className="user-message";
+    msg.innerText=currentText;
+    messages.appendChild(msg);
+
+    currentText="";
+    text.innerText="";
+
+    messages.scrollTop = messages.scrollHeight;
+
+    setTimeout(()=>{
+      const reply = document.createElement("div");
+      reply.className="bot-message";
+      reply.innerText="Sistema conectado.";
+      messages.appendChild(reply);
+      messages.scrollTop = messages.scrollHeight;
+    },1000);
+
+  }
+
+});
+</script>
+
+<script>
+
+function autoDrama(){
+
+  const sequences = [
+    "Perdón por irme así...",
+    "No supe quedarme...",
+    "Hoy iba a decirte..."
+  ];
+
+  const textElement = document.getElementById("text");
+  const keyboard = document.getElementById("keyboard");
+  const home = document.getElementById("home");
+  const chat = document.getElementById("chatApp");
+  const popup = document.getElementById("popup");
+
+  const keys = document.querySelectorAll(".key");
+
+  let sequenceIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+  let currentText = "";
+
+function pressKey(letter){
+
+  const normalized = letter
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  keys.forEach(key=>{
+
+    if(
+      key.innerText.toLowerCase() === normalized.toLowerCase() ||
+      (letter === " " && key.innerText === "␣")
+    ){
+      key.classList.add("active");
+
+      setTimeout(()=>{
+        key.classList.remove("active");
+      },120);
+    }
+
+  });
+}
+
+  function typeLoop(){
+
+    const currentSentence = sequences[sequenceIndex];
+
+    if(!isDeleting){
+
+      if(charIndex < currentSentence.length){
+
+        const char = currentSentence[charIndex];
+        currentText += char;
+        textElement.innerText = currentText;
+
+        pressKey(char);
+
+        charIndex++;
+        setTimeout(typeLoop, 85);
+
+      }else{
+
+        setTimeout(()=>{
+          isDeleting = true;
+          typeLoop();
+        },1600);
+
+      }
+
+    }else{
+
+      if(charIndex > 0){
+
+        currentText = currentText.slice(0,-1);
+        textElement.innerText = currentText;
+
+        charIndex--;
+        setTimeout(typeLoop, 55);
+
+      }else{
+
+        isDeleting = false;
+        sequenceIndex++;
+
+        if(sequenceIndex < sequences.length){
+
+          setTimeout(typeLoop, 700);
+
+        }else{
+
+          setTimeout(()=>{
+            showFinalPopup();
+          },2000);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  typeLoop();
+
+}
+
+
+/* =========================
+   POPUP FINAL
+========================== */
+
+function showFinalPopup(){
+
+  const home = document.getElementById("home");
+  const chat = document.getElementById("chatApp");
+  const popup = document.getElementById("popup");
+  const keyboard = document.getElementById("keyboard");
+
+  keyboard.style.bottom = "-300px";
+
+  chat.classList.remove("active");
+
+  home.style.opacity = 1;
+  home.style.pointerEvents = "auto";
+  home.style.filter = "brightness(0.7)";
+
+  // 🔥 ocultar barra navegación
+  document.querySelector(".nav-bar").style.opacity = 0;
+
+  setTimeout(()=>{
+    popup.style.opacity = 1;
+    popup.style.pointerEvents = "auto";
+    popup.classList.add("show");
+  },400);
+
+}
+
+const navHomeBtn = document.querySelector(".home-btn");
+
+navHomeBtn.addEventListener("click", () => {
+  showFinalPopup();
+});
+</script>
+
+</body>
+</html>
